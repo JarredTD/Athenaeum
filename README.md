@@ -1,5 +1,8 @@
 # Athenaeum
 
+[![CI](https://github.com/JarredTD/Athenaeum/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JarredTD/Athenaeum/actions/workflows/ci.yml)
+[![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg)](LICENSE)
+
 Athenaeum is a Rust library for Discord interactions endpoints. It verifies Discord signatures, decodes common request envelopes, and serializes protocol-correct responses.
 
 ## What it provides
