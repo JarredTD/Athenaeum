@@ -4,4 +4,7 @@ pub mod request;
 pub mod response;
 
 pub use request::{Interaction, InteractionKind, Member, User};
-pub use response::{InteractionCallbackData, InteractionCallbackType, InteractionResponse};
+pub use response::{
+    ApplicationCommandOptionChoice, InteractionCallbackData, InteractionCallbackType,
+    InteractionResponse,
+};

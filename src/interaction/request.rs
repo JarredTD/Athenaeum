@@ -32,7 +32,6 @@ pub struct Interaction<T = serde_json::Value> {
     #[serde(rename = "type")]
     pub kind: InteractionKind,
     /// Bot-specific payload for command-related interactions.
-    #[serde(default)]
     pub data: Option<T>,
     /// ID of the guild in which the interaction occurred.
     #[serde(default)]
