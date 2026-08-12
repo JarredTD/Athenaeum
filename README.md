@@ -14,11 +14,11 @@ Athenaeum is a Rust library for Discord interactions endpoints. It verifies Disc
 
 ## Installation
 
-Use the published repository at a pinned commit:
+Use the published repository at the `v0.1.0` release tag:
 
 ```toml
 [dependencies]
-athenaeum = { git = "https://github.com/JarredTD/Athenaeum.git", rev = "3c4981abb38f44494d2799e404480a6d5899fb16", features = ["http"] }
+athenaeum = { git = "https://github.com/JarredTD/Athenaeum.git", tag = "v0.1.0", features = ["http"] }
 ```
 
 The core interaction types and verifier have no HTTP dependency. Enable `http` when the application sends interaction callback requests through Athenaeum.
