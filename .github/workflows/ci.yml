@@ -19,6 +19,7 @@ jobs:
           inherit-toolchain: true
 
       - run: cargo fmt --check
+      - run: cargo check --no-default-features
       - run: cargo clippy --all-features --all-targets -- -D warnings
       - run: cargo test --all-features
       - run: cargo doc --all-features --no-deps --document-private-items
