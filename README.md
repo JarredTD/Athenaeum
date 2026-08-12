@@ -2,8 +2,6 @@
 
 Athenaeum is a Rust library for Discord interactions endpoints. It verifies Discord signatures, decodes common request envelopes, and serializes protocol-correct responses.
 
-It is not a bot framework. Command definitions, business rules, persistence, and hosting remain application concerns. Athenaeum provides only Discord interaction boundary primitives.
-
 ## What it provides
 
 - Ed25519 verification of Discord's timestamped interaction requests.
@@ -49,25 +47,6 @@ let response = InteractionResponse::ephemeral("All set.");
 ```
 
 Verify the exact raw body before parsing or transforming it. Discord signs the raw timestamp-and-body payload.
-
-## Development
-
-Athenaeum uses the Rust version in [`rust-toolchain.toml`](rust-toolchain.toml). The complete local quality suite is:
-
-```sh
-cargo fmt --check
-cargo check --no-default-features
-cargo clippy --all-features --all-targets -- -D warnings
-cargo test --all-features
-cargo doc --all-features --no-deps --document-private-items
-cargo llvm-cov --all-features --fail-under-lines 90
-```
-
-CI runs the same checks with pinned GitHub Actions. The coverage threshold applies to the library as a whole, including the optional HTTP support.
-
-## Scope and stability
-
-The public API is intentionally small. Applications should compose Athenaeum's protocol primitives and retain application-specific behavior. Once a public remote exists, dependencies should use a pinned release tag or commit rather than a moving branch.
 
 ## License
 
