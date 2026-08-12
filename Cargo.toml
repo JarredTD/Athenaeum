@@ -1,0 +1,27 @@
+[package]
+name = "athenaeum"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.94.1"
+license = "AGPL-3.0-only"
+description = "Reusable primitives for receiving and responding to Discord interactions"
+keywords = ["discord", "interactions", "webhooks"]
+categories = ["web-programming::http-client"]
+
+[features]
+default = []
+http = ["dep:reqwest"]
+
+[dependencies]
+anyhow = "1.0.99"
+bitflags = { version = "2.11.0", features = ["serde"] }
+ed25519-dalek = "2.2.0"
+hex = "0.4.3"
+reqwest = { version = "0.12.23", features = ["json", "rustls-tls"], optional = true }
+serde = { version = "1.0.225", features = ["derive"] }
+serde_json = "1.0.145"
+serde_repr = "0.1.20"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }
+wiremock = "0.6.5"

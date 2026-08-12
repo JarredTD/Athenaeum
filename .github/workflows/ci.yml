@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.0.0
+
+      - uses: moonrepo/setup-rust@abb2d32350334249b178c401e5ec5836e0cd88d3 # v1
+        with:
+          inherit-toolchain: true
+
+      - run: cargo fmt --check
+      - run: cargo clippy --all-features --all-targets -- -D warnings
+      - run: cargo test --all-features
+      - run: cargo doc --all-features --no-deps --document-private-items
+      - run: cargo install cargo-llvm-cov --version 0.8.7 --locked
+      - run: cargo llvm-cov --all-features --fail-under-lines 90
