@@ -13,11 +13,11 @@ It is not a bot framework. Command definitions, business rules, persistence, and
 
 ## Installation
 
-Athenaeum is currently consumed as a local path dependency:
+Use the published repository at a pinned commit:
 
 ```toml
 [dependencies]
-athenaeum = { path = "../Athenaeum", features = ["http"] }
+athenaeum = { git = "https://github.com/JarredTD/Athenaeum.git", rev = "3c4981abb38f44494d2799e404480a6d5899fb16", features = ["http"] }
 ```
 
 The core interaction types and verifier have no HTTP dependency. Enable `http` when the application sends interaction callback requests through Athenaeum.
