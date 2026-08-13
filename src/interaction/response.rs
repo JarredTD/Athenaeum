@@ -56,7 +56,7 @@ pub struct InteractionCallbackData {
     pub title: Option<String>,
     /// Input fields displayed in a modal response.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub components: Option<Vec<ModalActionRow>>,
+    pub components: Option<Vec<InteractionComponent>>,
 }
 
 /// Represents one selectable autocomplete choice.
@@ -97,6 +97,40 @@ pub struct ModalActionRow {
     components: Vec<ModalTextInput>,
 }
 
+/// A Discord button component used in an ordinary interaction response.
+#[derive(Debug, Serialize)]
+pub struct Button {
+    /// Discord component type for a button.
+    #[serde(rename = "type")]
+    component_type: u8,
+    /// Developer-defined value returned in the button interaction.
+    custom_id: String,
+    /// User-visible button label.
+    label: String,
+    /// Button style: primary (`1`), secondary (`2`), success (`3`), or danger (`4`).
+    style: u8,
+}
+
+/// A Discord action row containing ordinary message buttons.
+#[derive(Debug, Serialize)]
+pub struct ButtonActionRow {
+    /// Discord component type for an action row.
+    #[serde(rename = "type")]
+    component_type: u8,
+    /// Buttons shown in this row.
+    components: Vec<Button>,
+}
+
+/// One action-row variant accepted by Discord interaction response payloads.
+#[derive(Debug, Serialize)]
+#[serde(untagged)]
+pub enum InteractionComponent {
+    /// A row containing one modal text input.
+    Modal(ModalActionRow),
+    /// A row containing ordinary message buttons.
+    Buttons(ButtonActionRow),
+}
+
 impl ModalActionRow {
     /// Wraps one text input in the action row required by Discord's modal format.
     fn text_input(input: ModalTextInput) -> Self {
@@ -115,6 +149,30 @@ impl ModalTextInput {
             required: true,
             value: None,
         }
+    }
+}
+
+impl Button {
+    /// Creates a primary button for the principal action in a response.
+    pub fn primary(custom_id: impl Into<String>, label: impl Into<String>) -> Self {
+        Self { component_type: 2, custom_id: custom_id.into(), label: label.into(), style: 1 }
+    }
+
+    /// Creates a secondary button for a non-destructive response action.
+    pub fn secondary(custom_id: impl Into<String>, label: impl Into<String>) -> Self {
+        Self { component_type: 2, custom_id: custom_id.into(), label: label.into(), style: 2 }
+    }
+
+    /// Creates a danger button for an irreversible response action.
+    pub fn danger(custom_id: impl Into<String>, label: impl Into<String>) -> Self {
+        Self { component_type: 2, custom_id: custom_id.into(), label: label.into(), style: 4 }
+    }
+}
+
+impl ButtonActionRow {
+    /// Groups up to five buttons into the action row required by Discord.
+    pub fn new(buttons: Vec<Button>) -> Self {
+        Self { component_type: 1, components: buttons }
     }
 }
 
@@ -197,7 +255,30 @@ impl InteractionResponse {
                 choices: None,
                 custom_id: Some(custom_id.into()),
                 title: Some(title.into()),
-                components: Some(components.into_iter().map(ModalActionRow::text_input).collect()),
+                components: Some(
+                    components
+                        .into_iter()
+                        .map(ModalActionRow::text_input)
+                        .map(InteractionComponent::Modal)
+                        .collect(),
+                ),
+            }),
+        }
+    }
+
+    /// Builds an ephemeral response with a row of interactive buttons.
+    pub fn ephemeral_buttons(content: impl Into<String>, buttons: Vec<Button>) -> Self {
+        Self {
+            kind: InteractionCallbackType::ChannelMessageWithSource,
+            data: Some(InteractionCallbackData {
+                content: Some(content.into()),
+                flags: Some(MessageFlags::EPHEMERAL.bits()),
+                choices: None,
+                custom_id: None,
+                title: None,
+                components: Some(vec![InteractionComponent::Buttons(ButtonActionRow::new(
+                    buttons,
+                ))]),
             }),
         }
     }
@@ -206,7 +287,7 @@ impl InteractionResponse {
 /// Tests JSON payloads sent to Discord's interaction API.
 #[cfg(test)]
 mod tests {
-    use super::{ApplicationCommandOptionChoice, InteractionResponse, ModalTextInput};
+    use super::{ApplicationCommandOptionChoice, Button, InteractionResponse, ModalTextInput};
 
     /// Confirms that ordinary messages are marked ephemeral.
     #[test]
@@ -275,6 +356,33 @@ mod tests {
                             "style": 1,
                             "required": true
                         }]
+                    }]
+                }
+            })
+        );
+    }
+
+    /// Confirms that private responses can include a reusable button action row.
+    #[test]
+    fn serializes_ephemeral_buttons() {
+        let response = InteractionResponse::ephemeral_buttons(
+            "Review",
+            vec![Button::primary("confirm", "Confirm"), Button::danger("cancel", "Cancel")],
+        );
+
+        assert_eq!(
+            serde_json::to_value(response).expect("response should serialize"),
+            serde_json::json!({
+                "type": 4,
+                "data": {
+                    "content": "Review",
+                    "flags": 64,
+                    "components": [{
+                        "type": 1,
+                        "components": [
+                            { "type": 2, "custom_id": "confirm", "label": "Confirm", "style": 1 },
+                            { "type": 2, "custom_id": "cancel", "label": "Cancel", "style": 4 }
+                        ]
                     }]
                 }
             })
