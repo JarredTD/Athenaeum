@@ -9,8 +9,12 @@ pub enum InteractionKind {
     Ping = 1,
     /// Invocation of an application command.
     ApplicationCommand = 2,
+    /// Invocation of a message component, such as a button or select menu.
+    MessageComponent = 3,
     /// Request for command-option autocomplete choices.
     ApplicationCommandAutocomplete = 4,
+    /// Submission of a modal opened by the application.
+    ModalSubmit = 5,
     /// An interaction type not yet modeled by Athenaeum.
     #[serde(other)]
     Unknown,
@@ -36,6 +40,9 @@ pub struct Interaction<T = serde_json::Value> {
     /// ID of the guild in which the interaction occurred.
     #[serde(default)]
     pub guild_id: Option<String>,
+    /// ID of the channel in which the interaction occurred.
+    #[serde(default)]
+    pub channel_id: Option<String>,
     /// Invoking member details for guild interactions.
     #[serde(default)]
     pub member: Option<Member>,
@@ -72,6 +79,7 @@ mod tests {
             "token": "interaction-token",
             "type": 2,
             "guild_id": "guild-id",
+            "channel_id": "channel-id",
             "member": { "permissions": "8", "user": { "id": "user-id" } },
             "data": { "name": "role", "options": [{ "name": "save" }] }
         }))
@@ -79,6 +87,7 @@ mod tests {
 
         assert!(matches!(interaction.kind, InteractionKind::ApplicationCommand));
         assert_eq!(interaction.guild_id.as_deref(), Some("guild-id"));
+        assert_eq!(interaction.channel_id.as_deref(), Some("channel-id"));
         assert_eq!(
             interaction.member.as_ref().map(|member| member.user.id.as_str()),
             Some("user-id")
@@ -93,5 +102,19 @@ mod tests {
             .expect("unknown interaction kind should deserialize");
 
         assert!(matches!(interaction.kind, InteractionKind::Unknown));
+    }
+
+    /// Retains component and modal interaction kinds for application-level routing.
+    #[test]
+    fn deserializes_component_interaction_kinds() {
+        let component: Interaction =
+            serde_json::from_str(r#"{ "type": 3, "data": { "custom_id": "select-target" } }"#)
+                .expect("component fixture should deserialize");
+        let modal: Interaction =
+            serde_json::from_str(r#"{ "type": 5, "data": { "custom_id": "countdown-details" } }"#)
+                .expect("modal fixture should deserialize");
+
+        assert!(matches!(component.kind, InteractionKind::MessageComponent));
+        assert!(matches!(modal.kind, InteractionKind::ModalSubmit));
     }
 }

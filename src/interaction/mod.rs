@@ -6,5 +6,5 @@ pub mod response;
 pub use request::{Interaction, InteractionKind, Member, User};
 pub use response::{
     ApplicationCommandOptionChoice, InteractionCallbackData, InteractionCallbackType,
-    InteractionResponse,
+    InteractionResponse, ModalTextInput,
 };
