@@ -10,6 +10,7 @@ pub use discord::DiscordBotClient;
 const DISCORD_API_BASE: &str = "https://discord.com/api/v10";
 
 /// Delivers deferred and completed Discord interaction responses over HTTP.
+#[derive(Clone)]
 pub struct InteractionResponder {
     /// HTTP client used to call Discord interaction webhook endpoints.
     client: reqwest::Client,
