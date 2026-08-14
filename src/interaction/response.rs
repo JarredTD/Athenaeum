@@ -268,6 +268,17 @@ impl InteractionResponse {
 
     /// Builds an ephemeral response with a row of interactive buttons.
     pub fn ephemeral_buttons(content: impl Into<String>, buttons: Vec<Button>) -> Self {
+        Self::ephemeral_button_rows(content, vec![buttons])
+    }
+
+    /// Builds an ephemeral response with one or more rows of interactive buttons.
+    ///
+    /// Each supplied vector becomes one Discord action row. Callers are responsible for keeping
+    /// each row within Discord's five-button limit.
+    pub fn ephemeral_button_rows(
+        content: impl Into<String>,
+        button_rows: Vec<Vec<Button>>,
+    ) -> Self {
         Self {
             kind: InteractionCallbackType::ChannelMessageWithSource,
             data: Some(InteractionCallbackData {
@@ -276,9 +287,13 @@ impl InteractionResponse {
                 choices: None,
                 custom_id: None,
                 title: None,
-                components: Some(vec![InteractionComponent::Buttons(ButtonActionRow::new(
-                    buttons,
-                ))]),
+                components: Some(
+                    button_rows
+                        .into_iter()
+                        .map(ButtonActionRow::new)
+                        .map(InteractionComponent::Buttons)
+                        .collect(),
+                ),
             }),
         }
     }
@@ -384,6 +399,36 @@ mod tests {
                             { "type": 2, "custom_id": "cancel", "label": "Cancel", "style": 4 }
                         ]
                     }]
+                }
+            })
+        );
+    }
+
+    /// Confirms that private responses can separate controls into multiple Discord action rows.
+    #[test]
+    fn serializes_ephemeral_button_rows() {
+        let response = InteractionResponse::ephemeral_button_rows(
+            "Review",
+            vec![
+                vec![Button::primary("confirm", "Confirm")],
+                vec![Button::secondary("back", "Back"), Button::danger("cancel", "Cancel")],
+            ],
+        );
+
+        assert_eq!(
+            serde_json::to_value(response).expect("response should serialize"),
+            serde_json::json!({
+                "type": 4,
+                "data": {
+                    "content": "Review",
+                    "flags": 64,
+                    "components": [
+                        { "type": 1, "components": [{ "type": 2, "custom_id": "confirm", "label": "Confirm", "style": 1 }] },
+                        { "type": 1, "components": [
+                            { "type": 2, "custom_id": "back", "label": "Back", "style": 2 },
+                            { "type": 2, "custom_id": "cancel", "label": "Cancel", "style": 4 }
+                        ] }
+                    ]
                 }
             })
         );
