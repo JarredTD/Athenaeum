@@ -2,6 +2,10 @@ use anyhow::{anyhow, Context, Result};
 
 use crate::interaction::{Interaction, InteractionResponse};
 
+/// Provides bot-authenticated Discord REST requests.
+pub mod discord;
+pub use discord::DiscordBotClient;
+
 /// Base URL for Discord's REST API.
 const DISCORD_API_BASE: &str = "https://discord.com/api/v10";
 
