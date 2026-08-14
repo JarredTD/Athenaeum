@@ -17,14 +17,12 @@ Athenaeum is a Rust library for Discord interaction endpoints and shared Discord
 
 ## Installation
 
-During local coordinated development, depend on the checked-out library by path:
+Add Athenaeum with the features your application needs:
 
 ```toml
 [dependencies]
-athenaeum = { path = "../Athenaeum", features = ["http", "aws-secrets"] }
+athenaeum = { git = "https://github.com/JarredTD/Athenaeum.git", features = ["http", "aws-secrets"] }
 ```
-
-For published use, follow your project's normal dependency pinning policy.
 
 The core interaction types, verifier, identities, and permission evaluator have no HTTP or AWS dependency. Enable `http` for interaction callbacks or bot REST requests, and `aws-secrets` when the runtime reads JSON credentials from Secrets Manager.
 
