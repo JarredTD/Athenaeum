@@ -51,6 +51,16 @@ impl DiscordBotClient {
     pub fn post(&self, path: &str) -> RequestBuilder {
         self.request(Method::POST, path)
     }
+
+    /// Builds one bot-authorized PUT request.
+    pub fn put(&self, path: &str) -> RequestBuilder {
+        self.request(Method::PUT, path)
+    }
+
+    /// Builds one bot-authorized DELETE request.
+    pub fn delete(&self, path: &str) -> RequestBuilder {
+        self.request(Method::DELETE, path)
+    }
 }
 
 /// Tests Discord request construction without network access.
