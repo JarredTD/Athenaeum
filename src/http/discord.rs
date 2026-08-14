@@ -83,4 +83,16 @@ mod tests {
         assert_eq!(request.url().as_str(), "https://discord.example/channels/123");
         assert_eq!(request.headers()["authorization"], "Bot token");
     }
+
+    /// Builds every supported authenticated request method.
+    #[test]
+    fn builds_all_supported_request_methods() {
+        let client = DiscordBotClient::new(reqwest::Client::new(), "token");
+        for request in [client.post("messages"), client.put("roles"), client.delete("roles")] {
+            assert_eq!(
+                request.build().expect("request should build").headers()["authorization"],
+                "Bot token"
+            );
+        }
+    }
 }

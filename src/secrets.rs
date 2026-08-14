@@ -70,6 +70,9 @@ mod tests {
     fn rejects_noncanonical_or_missing_required_fields() {
         assert!(required_json_string_field(r#"{ "key": "value" }"#, "token").is_err());
         assert!(required_json_string_field(r#"{ "token": " " }"#, "token").is_err());
+        assert!(required_json_string_field(r#"{ "token": 1 }"#, "token").is_err());
+        assert!(required_json_string_field("[]", "token").is_err());
+        assert!(required_json_string_field("not-json", "token").is_err());
         assert!(required_json_string_field(r#""{\\"token\\":\\"value\\"}""#, "token").is_err());
     }
 }

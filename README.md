@@ -3,14 +3,16 @@
 [![CI](https://github.com/JarredTD/Athenaeum/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JarredTD/Athenaeum/actions/workflows/ci.yml)
 [![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg)](LICENSE)
 
-Athenaeum is a Rust library for Discord interactions endpoints. It verifies Discord signatures, decodes common request envelopes, and serializes protocol-correct responses.
+Athenaeum is a Rust library for Discord interaction endpoints and shared Discord bot primitives. It verifies Discord signatures, decodes common request envelopes, and serializes protocol-correct responses.
 
 ## What it provides
 
 - Ed25519 verification of Discord's timestamped interaction requests.
 - A generic `Interaction<T>` envelope: applications choose their own command-data type.
 - Models and helpers for pings, ephemeral messages, deferrals, and autocomplete responses.
-- An optional `http` feature for deferring and updating interaction responses through Discord's REST API.
+- Validated Discord snowflakes and effective channel-permission evaluation.
+- An optional `http` feature for interaction callbacks and bot-authenticated Discord REST requests.
+- An optional `aws-secrets` feature for required JSON fields in AWS Secrets Manager values.
 
 ## Installation
 
@@ -18,10 +20,10 @@ Use the published repository at the `v0.1.0` release tag:
 
 ```toml
 [dependencies]
-athenaeum = { git = "https://github.com/JarredTD/Athenaeum.git", tag = "v0.1.0", features = ["http"] }
+athenaeum = { git = "https://github.com/JarredTD/Athenaeum.git", tag = "v0.1.0", features = ["http", "aws-secrets"] }
 ```
 
-The core interaction types and verifier have no HTTP dependency. Enable `http` when the application sends interaction callback requests through Athenaeum.
+The core interaction types, verifier, identities, and permission evaluator have no HTTP or AWS dependency. Enable `http` for interaction callbacks or bot REST requests, and `aws-secrets` when the runtime reads JSON credentials from Secrets Manager.
 
 ```rust
 use athenaeum::{
