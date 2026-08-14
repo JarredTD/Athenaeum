@@ -8,3 +8,6 @@ pub mod auth;
 pub mod http;
 /// Defines Discord interaction payload and callback models.
 pub mod interaction;
+/// Retrieves required fields from JSON secrets in AWS Secrets Manager.
+#[cfg(feature = "aws-secrets")]
+pub mod secrets;

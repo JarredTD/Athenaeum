@@ -151,6 +151,7 @@ mod tests {
             kind: InteractionKind::ApplicationCommand,
             data: None,
             guild_id: None,
+            channel_id: None,
             member: None,
         }
     }
