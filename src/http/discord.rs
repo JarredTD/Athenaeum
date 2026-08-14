@@ -1,8 +1,15 @@
 //! Bot-authenticated Discord REST request construction.
 
 use anyhow::{Context, Result};
-use reqwest::{Client, Method, RequestBuilder};
+use reqwest::{
+    header::{HeaderMap, RETRY_AFTER},
+    Client, Method, RequestBuilder, StatusCode,
+};
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
+
+/// Number of one-off rate-limit retries performed for an idempotency-key-free channel message.
+const CHANNEL_MESSAGE_RATE_LIMIT_RETRIES: usize = 1;
 
 use crate::discord::DiscordSnowflake;
 
@@ -115,23 +122,47 @@ impl DiscordBotClient {
         channel_id: &DiscordSnowflake,
         message: ChannelMessage<'_>,
     ) -> Result<CreatedChannelMessage> {
-        self.post(&format!("channels/{}/messages", channel_id.as_str()))
-            .json(&message)
-            .send()
-            .await
-            .context("Discord channel message request failed")?
-            .error_for_status()
-            .context("Discord rejected the channel message")?
-            .json()
-            .await
-            .context("Discord returned an invalid channel message")
+        let path = format!("channels/{}/messages", channel_id.as_str());
+        for attempt in 0..=CHANNEL_MESSAGE_RATE_LIMIT_RETRIES {
+            let response = self
+                .post(&path)
+                .json(&message)
+                .send()
+                .await
+                .context("Discord channel message request failed")?;
+            if response.status() == StatusCode::TOO_MANY_REQUESTS
+                && attempt < CHANNEL_MESSAGE_RATE_LIMIT_RETRIES
+            {
+                if let Some(delay) = retry_after(response.headers()) {
+                    tokio::time::sleep(delay).await;
+                    continue;
+                }
+            }
+            return response
+                .error_for_status()
+                .context("Discord rejected the channel message")?
+                .json()
+                .await
+                .context("Discord returned an invalid channel message");
+        }
+        unreachable!("the bounded retry loop always returns a response")
     }
+}
+
+/// Reads Discord's required rate-limit delay from a 429 response header.
+fn retry_after(headers: &HeaderMap) -> Option<Duration> {
+    headers
+        .get(RETRY_AFTER)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.parse::<f64>().ok())
+        .filter(|seconds| seconds.is_finite() && *seconds >= 0.0)
+        .map(Duration::from_secs_f64)
 }
 
 /// Tests Discord request construction without network access.
 #[cfg(test)]
 mod tests {
-    use super::{AllowedMentions, ChannelMessage, DiscordBotClient};
+    use super::{retry_after, AllowedMentions, ChannelMessage, DiscordBotClient};
     use crate::discord::DiscordSnowflake;
     use wiremock::{
         matchers::{body_json, method, path},
@@ -166,6 +197,15 @@ mod tests {
         }
     }
 
+    /// Reads Discord's decimal Retry-After header as an exact retry delay.
+    #[test]
+    fn reads_rate_limit_retry_delay() {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert("Retry-After", "0.25".parse().expect("header should be valid"));
+
+        assert_eq!(retry_after(&headers), Some(std::time::Duration::from_millis(250)));
+    }
+
     /// Sends a channel message while allowing only the configured role mention.
     #[tokio::test]
     async fn creates_a_role_limited_channel_message() {
@@ -196,6 +236,43 @@ mod tests {
             )
             .await
             .expect("mocked Discord message should succeed");
+
+        assert_eq!(message.id.as_str(), "333333333333333333");
+    }
+
+    /// Retries a channel message once after Discord supplies an immediate rate-limit reset.
+    #[tokio::test]
+    async fn retries_a_rate_limited_channel_message() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/channels/222222222222222222/messages"))
+            .respond_with(ResponseTemplate::new(429).insert_header("Retry-After", "0"))
+            .up_to_n_times(1)
+            .with_priority(1)
+            .mount(&server)
+            .await;
+        Mock::given(method("POST"))
+            .and(path("/channels/222222222222222222/messages"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "id": "333333333333333333"
+            })))
+            .with_priority(2)
+            .expect(1)
+            .mount(&server)
+            .await;
+        let client =
+            DiscordBotClient::with_api_base_url(reqwest::Client::new(), "token", server.uri());
+
+        let message = client
+            .create_channel_message(
+                &snowflake("222222222222222222"),
+                ChannelMessage::new(
+                    "Countdown",
+                    AllowedMentions::only_role(&snowflake("123456789012345678")),
+                ),
+            )
+            .await
+            .expect("rate-limited request should retry once");
 
         assert_eq!(message.id.as_str(), "333333333333333333");
     }
