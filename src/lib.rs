@@ -3,6 +3,8 @@
 
 /// Implements Discord request verification.
 pub mod auth;
+/// Defines reusable Discord identity primitives.
+pub mod discord;
 /// Implements optional HTTP interaction callback delivery.
 #[cfg(feature = "http")]
 pub mod http;
