@@ -11,7 +11,8 @@ Athenaeum is a Rust library for Discord interaction endpoints and shared Discord
 - A generic `Interaction<T>` envelope: applications choose their own command-data type.
 - Models and helpers for pings, ephemeral messages, deferrals, and autocomplete responses.
 - Validated Discord snowflakes and effective channel-permission evaluation.
-- An optional `http` feature for interaction callbacks and bot-authenticated Discord REST requests.
+- An optional `http` feature for interaction callbacks, bot-authenticated Discord REST requests,
+  and channel messages with explicit role-only mentions.
 - An optional `aws-secrets` feature for required JSON fields in AWS Secrets Manager values.
 
 ## Installation
