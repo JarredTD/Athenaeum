@@ -246,6 +246,52 @@ mod tests {
         }
     }
 
+    /// Deserializes only the same validated snowflake form used by Discord APIs.
+    #[test]
+    fn deserializes_valid_snowflakes() {
+        let snowflake: DiscordSnowflake =
+            serde_json::from_str(r#""123456789012345678""#).expect("fixture should deserialize");
+
+        assert_eq!(snowflake.as_str(), "123456789012345678");
+        assert!(serde_json::from_str::<DiscordSnowflake>(r#""0""#).is_err());
+    }
+
+    /// Parses and combines the decimal permission values supplied by Discord.
+    #[test]
+    fn parses_and_combines_permissions() {
+        let permissions = DiscordPermissions::from_decimal("2048")
+            .expect("send-messages bit should parse")
+            .union(DiscordPermissions::MENTION_EVERYONE);
+
+        assert!(permissions.contains(DiscordPermissions::SEND_MESSAGES));
+        assert!(permissions.contains(DiscordPermissions::MENTION_EVERYONE));
+        assert!(DiscordPermissions::from_decimal("not-a-number").is_err());
+    }
+
+    /// Lets administrators retain every permission regardless of channel overwrites.
+    #[test]
+    fn administrators_bypass_channel_overwrites() {
+        let guild_id = snowflake("111111111111111111");
+        let member_id = snowflake("222222222222222222");
+        let permissions = effective_channel_permissions(
+            &guild_id,
+            &member_id,
+            &[],
+            &[GuildRolePermissions {
+                id: guild_id.clone(),
+                permissions: DiscordPermissions::ADMINISTRATOR,
+            }],
+            &[ChannelPermissionOverwrite {
+                subject_id: guild_id.clone(),
+                kind: PermissionOverwriteKind::Role,
+                allow: DiscordPermissions::from_bits(0),
+                deny: DiscordPermissions::SEND_MESSAGES,
+            }],
+        );
+
+        assert!(permissions.contains(DiscordPermissions::SEND_MESSAGES));
+    }
+
     /// Applies role denials before a member-specific grant restores a required permission.
     #[test]
     fn resolves_channel_permission_overwrites_in_discord_order() {
