@@ -1,2 +1,12 @@
-/target/
+target/
+coverage/
 *.rs.bk
+.DS_Store
+Desktop.ini
+Thumbs.db
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+*.log
