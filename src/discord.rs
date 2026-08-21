@@ -232,6 +232,7 @@ mod tests {
             DiscordSnowflake::new("123456789012345678").expect("fixture snowflake should be valid");
 
         assert_eq!(snowflake.as_str(), "123456789012345678");
+        assert_eq!(snowflake.to_string(), "123456789012345678");
         assert_eq!(
             serde_json::to_string(&snowflake).expect("snowflake should serialize"),
             r#""123456789012345678""#
@@ -265,7 +266,9 @@ mod tests {
 
         assert!(permissions.contains(DiscordPermissions::SEND_MESSAGES));
         assert!(permissions.contains(DiscordPermissions::MENTION_EVERYONE));
-        assert!(DiscordPermissions::from_decimal("not-a-number").is_err());
+        let error = DiscordPermissions::from_decimal("not-a-number")
+            .expect_err("non-decimal permissions should fail");
+        assert_eq!(error.to_string(), "Discord permissions must be an unsigned decimal bitfield");
     }
 
     /// Lets administrators retain every permission regardless of channel overwrites.

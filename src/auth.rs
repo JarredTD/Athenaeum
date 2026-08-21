@@ -111,6 +111,18 @@ mod tests {
         assert!(result.is_err());
     }
 
+    /// Rejects signed payloads that fall outside the replay-protection window.
+    #[test]
+    fn rejects_stale_and_future_timestamps() {
+        let now = current_timestamp().parse::<i64>().expect("current timestamp should be numeric");
+
+        let stale = InteractionVerifier::new().verify("00", &(now - 301).to_string(), b"{}", "00");
+        let future = InteractionVerifier::new().verify("00", &(now + 31).to_string(), b"{}", "00");
+
+        assert!(stale.expect_err("stale timestamp should fail").to_string().contains("too old"));
+        assert!(future.expect_err("future timestamp should fail").to_string().contains("future"));
+    }
+
     /// Returns a timestamp that falls within the verifier's accepted time window.
     fn current_timestamp() -> String {
         SystemTime::now()

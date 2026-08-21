@@ -304,6 +304,17 @@ impl InteractionResponse {
 mod tests {
     use super::{ApplicationCommandOptionChoice, Button, InteractionResponse, ModalTextInput};
 
+    /// Confirms that ping interactions receive Discord's pong callback type.
+    #[test]
+    fn serializes_pong() {
+        let response = InteractionResponse::pong();
+
+        assert_eq!(
+            serde_json::to_value(response).expect("response should serialize"),
+            serde_json::json!({ "type": 1 })
+        );
+    }
+
     /// Confirms that ordinary messages are marked ephemeral.
     #[test]
     fn serializes_ephemeral_message() {

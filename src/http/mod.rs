@@ -102,7 +102,7 @@ fn require_interaction_token<T>(interaction: &Interaction<T>) -> Result<&str> {
 /// Tests Discord interaction webhook requests against a local HTTP server.
 #[cfg(test)]
 mod tests {
-    use super::InteractionResponder;
+    use super::{InteractionResponder, DISCORD_API_BASE};
     use crate::interaction::{Interaction, InteractionKind, InteractionResponse};
     use wiremock::{
         matchers::{body_json, method, path},
@@ -126,6 +126,14 @@ mod tests {
             .defer_ephemeral(&interaction())
             .await
             .expect("mocked Discord deferral should succeed");
+    }
+
+    /// Uses Discord's production API when no compatible endpoint is supplied.
+    #[test]
+    fn creates_a_production_responder() {
+        let responder = InteractionResponder::new(reqwest::Client::new());
+
+        assert_eq!(responder.api_base_url, DISCORD_API_BASE);
     }
 
     /// Confirms that a deferred response is replaced through Discord's original-message endpoint.
