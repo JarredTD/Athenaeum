@@ -5,7 +5,7 @@
 
 Athenaeum is a Rust library for Discord interaction endpoints and shared Discord bot primitives. It verifies Discord signatures, decodes common request envelopes, and serializes protocol-correct responses.
 
-## What it provides
+## Features
 
 - Ed25519 verification of Discord's timestamped interaction requests.
 - A generic `Interaction<T>` envelope: applications choose their own command-data type.
@@ -15,16 +15,18 @@ Athenaeum is a Rust library for Discord interaction endpoints and shared Discord
   and channel messages with explicit role-only mentions.
 - An optional `aws-secrets` feature for required JSON fields in AWS Secrets Manager values.
 
-## Installation
+## Setup
 
 Add Athenaeum with the features your application needs:
 
 ```toml
 [dependencies]
-athenaeum = { git = "https://github.com/JarredTD/Athenaeum.git", features = ["http", "aws-secrets"] }
+athenaeum = { git = "https://github.com/JarredTD/Athenaeum.git", tag = "v0.1.1", features = ["http", "aws-secrets"] }
 ```
 
 The core interaction types, verifier, identities, and permission evaluator have no HTTP or AWS dependency. Enable `http` for interaction callbacks or bot REST requests, and `aws-secrets` when the runtime reads JSON credentials from Secrets Manager.
+
+## Usage
 
 ```rust
 use athenaeum::{
