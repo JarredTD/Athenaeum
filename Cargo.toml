@@ -28,3 +28,8 @@ serde_repr = "0.1.20"
 [dev-dependencies]
 tokio = { version = "1", features = ["macros", "rt"] }
 wiremock = "0.6.5"
+
+[workspace]
+members = [".", "xtask"]
+default-members = ["."]
+resolver = "2"
