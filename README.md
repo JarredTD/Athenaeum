@@ -21,7 +21,7 @@ Add Athenaeum with the features your application needs:
 
 ```toml
 [dependencies]
-athenaeum = { git = "https://github.com/JarredTD/Athenaeum.git", tag = "v0.1.2", features = ["http", "aws-secrets"] }
+athenaeum = { git = "https://github.com/JarredTD/Athenaeum.git", tag = "v0.1.3", features = ["http", "aws-secrets"] }
 ```
 
 The core interaction types, verifier, identities, and permission evaluator have no HTTP or AWS dependency. Enable `http` for interaction callbacks or bot REST requests, and `aws-secrets` when the runtime reads JSON credentials from Secrets Manager.
