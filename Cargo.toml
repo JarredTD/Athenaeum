@@ -2,7 +2,7 @@
 name = "athenaeum"
 version = "0.1.3"
 edition = "2021"
-rust-version = "1.94.1"
+rust-version = "1.100.0"
 license = "AGPL-3.0-only"
 description = "Reusable primitives for receiving and responding to Discord interactions"
 keywords = ["discord", "interactions", "webhooks"]
